@@ -1,0 +1,17 @@
+{
+  "name": "sls-devagram-auth",
+  "version": "1.0.0",
+  "description": "Serverless Devagram Authentication Function",
+  "private": "true",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-plugin-typescript": "^2.1.4",
+    "typescript": "^4.9.3"
+  }
+}

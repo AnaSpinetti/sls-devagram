@@ -1,0 +1,14 @@
+service: sls-devagram-auth
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+plugins:
+  - serverless-plugin-typescript
+
+functions:
+  hello:
+    handler: handler.hello
