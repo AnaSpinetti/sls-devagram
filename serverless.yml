@@ -2,13 +2,74 @@ service: sls-devagram-auth
 
 frameworkVersion: '3'
 
+
+
 provider:
   name: aws
   runtime: nodejs12.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'} 
 
 plugins:
   - serverless-plugin-typescript
 
 functions:
-  hello:
-    handler: handler.hello
+  signup:
+    handler: src/functions/auth.register
+    events:
+      - http:
+        path: register
+        method: post
+        cors: true
+
+resources:
+  Resources:
+    CognitoUserPool: 
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${self:provider.stage}-user-pool
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: false
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+        EmailVerificationMessage: "Seu código de verificação é {####}"
+        EmailVerificationSubject: "Código de verificação Devagram"
+        Policies: 
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+    CognitoUserClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}-${self:provider.stage}-user-pool-client
+        UserPoolId: !Ref CognitoUserPool         
+        AllowedOAuthFlows:
+          - implicit
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthScopes:
+          - email
+          - openid
+        CallbackURLs:
+          - https://www.devaria.com.br
+        LogoutURLs:
+          - https://www.devaria.com.br
+        ExplicitAuthFlows:
+          - ALLOW_CUSTOM_AUTH
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        SupportedIdentityProviders:
+          - COGNITO
+        ReadAttributes:
+          - email
+        WriteAttributes:
+          - email
+#    CognitoUserDomain:
+ #     Type: AWS::Cognito::UserPoolDomain
+  #    Properties: 
+   #     UserPoolId: !Ref CognitoUserPool
+    #    Domain: ${self:service}-${self:provider.stage}-user-pool-domain-20221120-spinetti
