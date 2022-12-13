@@ -102,7 +102,7 @@ resources:
     AvatarsBucket:
       Type: AWS::S3::Bucket
       Properties: 
-        Bucketname: ${self:custom.avatarBucket} 
+        BucketName: ${self:custom.avatarBucket} 
         AccessControl: Private
     AvatarsBucketPolicy:
       Type: AWS::S3::BucketPolicy

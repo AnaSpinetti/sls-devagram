@@ -25,7 +25,7 @@ export class S3Service{
                         return reject(err)
                     }
 
-                    resolve(res)
+                    resolve(key)
                 })
 
             } catch (error) {
