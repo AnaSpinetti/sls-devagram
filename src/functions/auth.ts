@@ -6,6 +6,7 @@ import { ConfirmEmailRequest } from "../types/auth/ConfirmEmailRequest";
 import { CognitoServices } from "../../services/CognitoServices";
 import { User } from "../types/models/User";
 import { UserModel } from "../models/UserModel";
+import { parse } from 'aws-multipart-parser';
 
 export const register: Handler = async (event: APIGatewayEvent) : Promise<DefaultJsonResponse>  => {
     try {
@@ -51,27 +52,26 @@ export const confirmEmail: Handler = async (event: APIGatewayEvent) : Promise<De
          return formatDefaultResponse(400, 'Parâmetros de entrada não informados');
     }
 
-    const request = JSON.parse(event.body) as ConfirmEmailRequest
+    const formData = parse(event, true);
 
-    const { email, verificationCode } = request;
+//     if (!email || !email.match(emailRegex)) {
+//       return formatDefaultResponse(400, 'Email inválido');
+//     }
 
-    if (!email || !email.match(emailRegex)) {
-      return formatDefaultResponse(400, 'Email inválido');
-    }
+//     if (!verificationCode || verificationCode.length !== 6) {
+//       return formatDefaultResponse(400, 'Código inválido');
+//     }
 
-    if (!verificationCode || verificationCode.length !== 6) {
-      return formatDefaultResponse(400, 'Código inválido');
-    }
-
-    const cognitoUser = await new CognitoServices(USER_POOL_ID, USER_CLIENT_ID).confirmEmail(email, verificationCode);
+//     const cognitoUser = await new CognitoServices(USER_POOL_ID, USER_CLIENT_ID).confirmEmail(email, verificationCode);
     
-    // Criando o usuário na tabela
-    const user = {
-          ...cognitoUser,
-          cognitoId: cognitoUser.userSub
-     } as User;
+//     // Criando o usuário na tabela
+//     const user = {
+//           nome,
+//           email,
+//           cognitoId: cognitoUser.userSub
+//      } as User;
 
-     await UserModel.create(user)
+     //await UserModel.create(user)
 
     return formatDefaultResponse(200, 'Email confirmado com sucesso!');
 
