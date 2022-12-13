@@ -2,13 +2,28 @@ service: sls-devagram-auth
 
 frameworkVersion: '3'
 
-
+custom: 
+  userPoolId: 'us-east-1_8EHXttmuc'
+  userPoolClientId: '2vpjfe9mckjhdmfmn1is2ie8ns'
+  userTableName: 'users-table-${self:provider.stage}'
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'} 
+  environment: 
+    USER_POOL_ID: ${self:custom.userPoolId}
+    USER_POOL_CLIENT_ID: ${self:custom.userPoolClientId}
+    USER_TABLE: ${self:custom.userTableName}
+  iam:
+    role: 
+      statements: 
+        - Effect: Allow
+          Action: 
+            - dynamodb:*
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table:${self:custom.userTableName}"
 
 plugins:
   - serverless-plugin-typescript
@@ -18,10 +33,16 @@ functions:
     handler: src/functions/auth.register
     events:
       - http:
-        path: register
-        method: post
-        cors: true
-
+          path: register
+          method: post
+          cors: true
+  confirmEmail:
+    handler: src/functions/auth.confirmEmail
+    events:
+      - http:
+          path: confirmEmail
+          method: post
+          cors: true
 resources:
   Resources:
     CognitoUserPool: 
@@ -68,8 +89,8 @@ resources:
           - email
         WriteAttributes:
           - email
-#    CognitoUserDomain:
- #     Type: AWS::Cognito::UserPoolDomain
-  #    Properties: 
-   #     UserPoolId: !Ref CognitoUserPool
-    #    Domain: ${self:service}-${self:provider.stage}-user-pool-domain-20221120-spinetti
+    CognitoUserDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties: 
+        UserPoolId: !Ref CognitoUserPool
+        Domain: ${self:service}-${self:provider.stage}-user-pool-domain-20221120-spinetti

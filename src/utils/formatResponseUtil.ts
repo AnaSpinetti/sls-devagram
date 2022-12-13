@@ -1,6 +1,6 @@
 import type {DefaultResponseMessage} from '../types/DefaultResponseMessage';
 
-type DefaultJsonResponse = {
+export type DefaultJsonResponse = {
     statusCode: number, 
     headers: object,
     body: string
@@ -9,7 +9,7 @@ type DefaultJsonResponse = {
 export const formatDefaultResponse = (statusCode: number, message: string | undefined, response?: Record<string, unknown>) : DefaultJsonResponse => {
     const defaultMessage : DefaultResponseMessage = {};
 
-    if(message && statusCode >=200 || message && statusCode <= 399){
+    if(message && statusCode >=200 && message && statusCode <= 399){
         defaultMessage.msg = message;
     }else if(message){
         defaultMessage.error = message;
