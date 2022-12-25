@@ -3,13 +3,14 @@ service: sls-devagram-auth
 frameworkVersion: '3'
 
 custom: 
-  userPoolId: 'us-east-1_8EHXttmuc'
-  userPoolClientId: 'CLIENTID'
+  userPoolId: 'us-east-1_EiL07xpgz'
+  userPoolClientId: '18verrh6lfj03q3nla5ovcd8pk'
   userTableName: 'users-table-${self:provider.stage}'
-  avatarBucket: '${self:service}-${self:provider.stage}-avatars'
+  avatarBucket: '${self:service}-${self:provider.stage}-avatar'
   apigwBinary:
     types:
       - 'multipart/form-data'
+      
 provider:
   name: aws
   runtime: nodejs12.x
@@ -19,28 +20,26 @@ provider:
     USER_POOL_ID: ${self:custom.userPoolId}
     USER_POOL_CLIENT_ID: ${self:custom.userPoolClientId}
     USER_TABLE: ${self:custom.userTableName}
-    AVATAT_BUCKET: ${self:custom.avatarBucket}
-  iam:
-    role: 
-      statements: 
-        - Effect: Allow
+    AVATAR_BUCKET: ${self:custom.avatarBucket}
+  iamRoleStatements:
+        - Effect: "Allow"
           Action: 
             - dynamodb:*
-          Resource:
-            - "arn:aws:dynamodb:${self:provider.region}:*:table:${self:custom.userTableName}"
+          Resource: "*"
 
 plugins:
   - serverless-plugin-typescript
   - serverless-apigw-binary
 
 functions:
-  signup:
+  register:
     handler: src/functions/auth.register
     events:
       - http:
           path: register
           method: post
           cors: true
+
   confirmEmail:
     handler: src/functions/auth.confirmEmail
     events:
@@ -48,6 +47,23 @@ functions:
           path: confirmEmail
           method: post
           cors: true
+          
+  forgotPassword:
+    handler: src/functions/auth.forgotPassword
+    events:
+      - http:
+          path: forgotPassword
+          method: post
+          cors: true
+
+  changePassword:
+    handler: src/functions/auth.changePassword
+    events:
+      - http:
+          path: changePassword
+          method: post
+          cors: true
+
 resources:
   Resources:
     CognitoUserPool: 
@@ -69,7 +85,7 @@ resources:
             RequireNumbers: true
             RequireSymbols: true
             RequireUppercase: true
-    CognitoUserClient:
+    CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
         ClientName: ${self:service}-${self:provider.stage}-user-pool-client
@@ -94,11 +110,11 @@ resources:
           - email
         WriteAttributes:
           - email
-    CognitoUserDomain:
+    CognitoUserPoolDomain:
       Type: AWS::Cognito::UserPoolDomain
       Properties: 
         UserPoolId: !Ref CognitoUserPool
-        Domain: ${self:service}-${self:provider.stage}-user-pool-domain-20221120-spinetti
+        Domain: ${self:service}-${self:provider.stage}-user-pool-domain-spinetti
     AvatarsBucket:
       Type: AWS::S3::Bucket
       Properties: 

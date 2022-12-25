@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as Uuid from 'uuid';
 import { FileData } from 'aws-multipart-parser/dist/models';
-import { imageExtensionAllowed } from '../src/constants/Regexes';
+import { imageExtensionAllowed } from '../constants/Regexes';
 
 const S3 = new AWS.S3();
 
