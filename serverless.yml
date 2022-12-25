@@ -64,6 +64,14 @@ functions:
           method: post
           cors: true
 
+  login:
+    handler: src/functions/login.handler
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+
 resources:
   Resources:
     CognitoUserPool: 

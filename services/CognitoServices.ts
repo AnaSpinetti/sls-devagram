@@ -1,4 +1,4 @@
-import { CognitoUser, CognitoUserPool } from "amazon-cognito-identity-js";
+import { AuthenticationDetails, CognitoUser, CognitoUserPool } from "amazon-cognito-identity-js";
 
 export class CognitoServices {
     constructor(private userPoolId: string, private userPoolClient: string) { }
@@ -95,6 +95,46 @@ export class CognitoServices {
                 cognitoUser.confirmPassword(verificationCode, password, {
                 onSuccess(success) {
                     resolve(success)
+                }, 
+                onFailure(err) {
+                    reject(err)
+                },})
+
+            } catch (error) {
+                console.log(error)
+                reject(error)
+            }
+        })
+    }
+
+    public login = (login: string, password: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            try {
+                const userPool = new CognitoUserPool(this.poolData);
+
+                const userData = {
+                    Username: login,
+                    Pool: userPool
+               }
+               
+               const authenticationData = {
+                    Username: login,
+                    Password: password
+               }
+
+               const authenticationDetails = new AuthenticationDetails(authenticationData);
+               const cognitoUser = new CognitoUser(userData);
+
+                cognitoUser.authenticateUser(authenticationDetails, {
+                onSuccess(result) {
+                    const accessToken = result.getAccessToken().getJwtToken();
+                    const refreshToken = result.getRefreshToken().getToken();
+
+                    resolve({
+                        email: login,
+                        token: accessToken,
+                        refreshToken
+                    })
                 }, 
                 onFailure(err) {
                     reject(err)
