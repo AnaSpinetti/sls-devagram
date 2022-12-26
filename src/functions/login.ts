@@ -22,6 +22,7 @@ export const handler: Handler = async (event: APIGatewayEvent): Promise<DefaultJ
          }
     
          const result = await new CognitoServices(USER_POOL_ID, USER_POOL_CLIENT_ID).login(login, password);
+
          return formatDefaultResponse(200, undefined, result);
 
     } catch (e: any) {

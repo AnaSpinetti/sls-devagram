@@ -33,4 +33,21 @@ export class S3Service {
             }
         })
     }
+
+    public getImageURL = (bucket: string, key: string) : Promise<string | Error> => {
+        return new Promise((resolve, reject) => {
+            try {
+                const params = {Bucket: bucket, Key: key};
+                S3.getSignedUrl('getObject', params, (err, url) => {
+                    if(err){
+                        reject(err)
+                    }
+
+                    resolve(url);
+                })
+            } catch (error) {
+                reject(Error)
+            }
+        })
+    }
 }
