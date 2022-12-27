@@ -1,5 +1,5 @@
 import { Handler, APIGatewayEvent } from "aws-lambda";
-import {UserRegisterRequest} from '../types/auth/UserRegisterRequest';
+import { UserRegisterRequest } from '../types/auth/UserRegisterRequest';
 import { DefaultJsonResponse, formatDefaultResponse } from "../utils/formatResponseUtil";
 import { passwordRegex, emailRegex, imageExtensionAllowed } from '../constants/Regexes';
 import { ConfirmEmailRequest } from "../types/auth/ConfirmEmailRequest";
@@ -10,21 +10,14 @@ import { UserModel } from "../models/UserModel";
 import { parse } from 'aws-multipart-parser';
 import { S3Service } from "../../services/S3Services";
 import { ChangePasswordRequest } from "../types/auth/ChangePasswordRequest";
+import { validateEnvs } from "../utils/environmentsUtils";
 
 export const register: Handler = async (event: APIGatewayEvent): Promise<DefaultJsonResponse> => {
      try {
-          const { USER_POOL_ID, USER_POOL_CLIENT_ID, USER_TABLE, AVATAR_BUCKET } = process.env;
-          
-          if (!USER_POOL_ID || !USER_POOL_CLIENT_ID) {
-               return formatDefaultResponse(500, 'Cognito Environments não encontradas');
-          }
+          const { USER_POOL_ID, USER_POOL_CLIENT_ID, AVATAR_BUCKET, error } = validateEnvs(['USER_POOL_ID', 'USER_POOL_CLIENT_ID', 'USER_TABLE', 'AVATAR_BUCKET']);
 
-          if (!USER_TABLE) {
-               return formatDefaultResponse(500, 'Envs de tabelas do dynamo não encontradas');
-          }
-
-          if (!AVATAR_BUCKET) {
-               return formatDefaultResponse(500, 'Envs do bucket de avatar não encontradas');
+          if (error) {
+               return formatDefaultResponse(500, error);
           }
 
           if (!event.body) {
@@ -36,7 +29,7 @@ export const register: Handler = async (event: APIGatewayEvent): Promise<Default
           const name = formData.name as string;
           const email = formData.email as string;
           const password = formData.password as string;
-          
+
           if (!email || !email.match(emailRegex)) {
                return formatDefaultResponse(400, 'Email inválido');
           }
@@ -47,14 +40,14 @@ export const register: Handler = async (event: APIGatewayEvent): Promise<Default
                return formatDefaultResponse(400, 'Nome inválido');
           }
 
-          if(file && !imageExtensionAllowed.exec(file.filename)){
+          if (file && !imageExtensionAllowed.exec(file.filename)) {
                return formatDefaultResponse(400, 'Extensão inválida');
           }
-          
+
           const cognitoUser = await new CognitoServices(USER_POOL_ID, USER_POOL_CLIENT_ID).signUp(email, password);
 
           let key = '';
-          if(file){
+          if (file) {
                key = await new S3Service().saveImage(AVATAR_BUCKET, 'avatar', file);
           }
 
@@ -66,7 +59,7 @@ export const register: Handler = async (event: APIGatewayEvent): Promise<Default
                avatar: key,
                cognitoId: cognitoUser.userSub,
           } as User;
- 
+
           await UserModel.create(user)
           return formatDefaultResponse(200, 'Usuario cadastrado com sucesso, verifique seu email para confirmar o codigo!');
 
@@ -78,11 +71,13 @@ export const register: Handler = async (event: APIGatewayEvent): Promise<Default
 
 export const confirmEmail: Handler = async (event: APIGatewayEvent): Promise<DefaultJsonResponse> => {
      try {
-          const { USER_POOL_ID, USER_POOL_CLIENT_ID } = process.env;
 
-          if (!USER_POOL_ID || !USER_POOL_CLIENT_ID) {
-               return formatDefaultResponse(500, 'Cognito Environments não encontradas');
+          const { USER_POOL_ID, USER_POOL_CLIENT_ID, error } = validateEnvs(['USER_POOL_ID', 'USER_POOL_CLIENT_ID']);
+
+          if (error) {
+               return formatDefaultResponse(500, error);
           }
+
           if (!event.body) {
                return formatDefaultResponse(400, 'Parâmetros de entrada não informados');
           }
@@ -105,11 +100,13 @@ export const confirmEmail: Handler = async (event: APIGatewayEvent): Promise<Def
 
 export const forgotPassword: Handler = async (event: APIGatewayEvent): Promise<DefaultJsonResponse> => {
      try {
-          const { USER_POOL_ID, USER_POOL_CLIENT_ID } = process.env;
+          const { USER_POOL_ID, USER_POOL_CLIENT_ID, error } = validateEnvs(['USER_POOL_ID', 'USER_POOL_CLIENT_ID']);
 
-          if (!USER_POOL_ID || !USER_POOL_CLIENT_ID) {
-               return formatDefaultResponse(500, 'Cognito Environments não encontradas');
+          if (error) {
+               return formatDefaultResponse(500, error);
           }
+
+
           if (!event.body) {
                return formatDefaultResponse(400, 'Parâmetros de entrada não informados');
           }
@@ -120,7 +117,7 @@ export const forgotPassword: Handler = async (event: APIGatewayEvent): Promise<D
           if (!email || !email.match(emailRegex)) {
                return formatDefaultResponse(400, 'Email inválido');
           }
-     
+
           await new CognitoServices(USER_POOL_ID, USER_POOL_CLIENT_ID).forgotPassword(email);
           return formatDefaultResponse(200, 'Solicitação de troca de senha enviada com sucesso!');
      } catch (e: any) {
@@ -131,18 +128,19 @@ export const forgotPassword: Handler = async (event: APIGatewayEvent): Promise<D
 
 export const changePassword: Handler = async (event: APIGatewayEvent): Promise<DefaultJsonResponse> => {
      try {
-          const { USER_POOL_ID, USER_POOL_CLIENT_ID } = process.env;
+          const { USER_POOL_ID, USER_POOL_CLIENT_ID, error } = validateEnvs(['USER_POOL_ID', 'USER_POOL_CLIENT_ID']);
 
-          if (!USER_POOL_ID || !USER_POOL_CLIENT_ID) {
-               return formatDefaultResponse(500, 'Cognito Environments não encontradas');
+          if (error) {
+               return formatDefaultResponse(500, error);
           }
+
           if (!event.body) {
                return formatDefaultResponse(400, 'Parâmetros de entrada não informados');
           }
 
           const request = JSON.parse(event.body) as ChangePasswordRequest;
           const { email, verificationCode, password } = request;
-          
+
           if (!email || !email.match(emailRegex)) {
                return formatDefaultResponse(400, 'Email inválido');
           }
@@ -150,10 +148,10 @@ export const changePassword: Handler = async (event: APIGatewayEvent): Promise<D
                return formatDefaultResponse(400, 'Senha inválida, senha deve conter pelo menos um caractér maiúsculo, minúsculo, numérico e especial, além de ter pelo menos oito dígitos.');
           }
 
-          if(!verificationCode || verificationCode.length !== 6){
+          if (!verificationCode || verificationCode.length !== 6) {
                return formatDefaultResponse(400, 'Código inválido')
           }
-     
+
           await new CognitoServices(USER_POOL_ID, USER_POOL_CLIENT_ID).changePassword(email, password, verificationCode);
           return formatDefaultResponse(200, 'Senha alterada com sucesso!');
      } catch (e: any) {
