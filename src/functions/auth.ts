@@ -4,11 +4,11 @@ import { DefaultJsonResponse, formatDefaultResponse } from "../utils/formatRespo
 import { passwordRegex, emailRegex, imageExtensionAllowed } from '../constants/Regexes';
 import { ConfirmEmailRequest } from "../types/auth/ConfirmEmailRequest";
 import { FileData } from 'aws-multipart-parser/dist/models';
-import { CognitoServices } from "../../services/CognitoServices";
+import { CognitoServices } from "../services/CognitoServices";
 import { User } from "../types/models/User";
 import { UserModel } from "../models/UserModel";
 import { parse } from 'aws-multipart-parser';
-import { S3Service } from "../../services/S3Services";
+import { S3Service } from "../services/S3Services";
 import { ChangePasswordRequest } from "../types/auth/ChangePasswordRequest";
 import { validateEnvs } from "../utils/environmentsUtils";
 

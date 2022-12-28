@@ -1,7 +1,7 @@
 import { APIGatewayEvent, Handler } from "aws-lambda";
 import { DefaultJsonResponse, formatDefaultResponse } from "../utils/formatResponseUtil";
 import { LoginRequest } from '../types/login/LoginRequest';
-import { CognitoServices } from "../../services/CognitoServices";
+import { CognitoServices } from "../services/CognitoServices";
 import { validateEnvs } from "../utils/environmentsUtils";
 
 export const handler: Handler = async (event: APIGatewayEvent): Promise<DefaultJsonResponse> => {

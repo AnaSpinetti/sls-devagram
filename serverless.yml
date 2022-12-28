@@ -3,10 +3,12 @@ service: sls-devagram-auth
 frameworkVersion: '3'
 
 custom: 
-  userPoolId: 'us-east-1_EiL07xpgz'
-  userPoolClientId: '18verrh6lfj03q3nla5ovcd8pk'
+  userPoolId: 'us-east-1_7Wf2biaZp'
+  userPoolClientId: '698ef56i65kboj4158cmc3vvb7'
   userTableName: 'users-table-${self:provider.stage}'
   avatarBucket: '${self:service}-${self:provider.stage}-avatar'
+  postTableName: 'posts-table-${self:provider.stage}'
+  postBucket: '${self:service}-${self:provider.stage}-post'
   apigwBinary:
     types:
       - 'multipart/form-data'
@@ -21,6 +23,8 @@ provider:
     USER_POOL_CLIENT_ID: ${self:custom.userPoolClientId}
     USER_TABLE: ${self:custom.userTableName}
     AVATAR_BUCKET: ${self:custom.avatarBucket}
+    POST_TABLE: ${self:custom.postTableName}
+    POST_BUCKET: ${self:custom.postBucket}
   iamRoleStatements:
         - Effect: "Allow"
           Action: 
@@ -102,6 +106,22 @@ functions:
           method: put
           authorizer: serviceAuthorizer
 
+  createPost:
+    handler: src/functions/post.create
+    events:
+      - httpApi:
+          path: /post
+          method: post
+          authorizer: serviceAuthorizer
+
+  toggleLike:
+    handler: src/functions/post.toggleLike
+    events:
+      - httpApi:
+          path: /like/{postId}
+          method: put
+          authorizer: serviceAuthorizer
+
 resources:
   Resources:
     CognitoUserPool: 
@@ -176,4 +196,28 @@ resources:
                   -
                     - "arn:aws:s3:::"
                     - !Ref AvatarsBucket
+                    - "/*"
+    PostsBucket: 
+      Type: AWS::S3::Bucket
+      Properties: 
+        BucketName: ${self:custom.postBucket} 
+        AccessControl: Private
+    PostsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties: 
+        Bucket: !Ref PostsBucket
+        PolicyDocument: 
+          Statement:
+            - Effect: Allow
+              Principal: "*"
+              Action: 
+                - s3:PutObject
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: 
+                Fn::Join:
+                  - ""
+                  -
+                    - "arn:aws:s3:::"
+                    - !Ref PostsBucket
                     - "/*"
