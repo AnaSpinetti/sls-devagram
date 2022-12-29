@@ -134,17 +134,25 @@ functions:
     handler: src/functions/post.get
     events:
       - httpApi:
-        path: /post/{postId}
-        method: get
-        authorizer: serviceAuthorizer
+          path: /post/{postId}
+          method: get
+          authorizer: serviceAuthorizer
 
   getUserById:
     handler: src/functions/user.getUserById
     events:
       - httpApi:
-        path: /user/{userId}
-        method: get
-        authorizer: serviceAuthorizer
+          path: /user/{userId}
+          method: get
+          authorizer: serviceAuthorizer
+
+  searchUser:
+    handler: src/functions/user.searchUser
+    events:
+      - httpApi:
+          path: /user/search/{filter}
+          method: get
+          authorizer: serviceAuthorizer
 
 resources:
   Resources:
