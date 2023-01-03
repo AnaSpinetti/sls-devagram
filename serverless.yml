@@ -162,6 +162,30 @@ functions:
           method: put
           authorizer: serviceAuthorizer
 
+  getMyFeed:
+    handler: src/functions/feed.findByUserId
+    events:
+      - httpApi:
+          path: /feed/user
+          method: get
+          authorizer: serviceAuthorizer
+
+  getFeedById:
+    handler: src/functions/feed.findByUserId
+    events:
+      - httpApi:
+          path: /feed/user/{userId}
+          method: get
+          authorizer: serviceAuthorizer
+
+  getFeedHome:
+    handler: src/functions/feed.feedHome
+    events:
+      - httpApi:
+          path: /feed
+          method: get
+          authorizer: serviceAuthorizer
+
 resources:
   Resources:
     CognitoUserPool: 
